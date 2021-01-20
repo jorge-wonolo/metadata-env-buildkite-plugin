@@ -40,13 +40,19 @@ function read_meta_data() {
   local meta_data_key_alias
   local mapped_key
 
-  IFS='=' read -ra key_mapped <<< "$key_item"
+  IFS='=|' read -ra key_mapped <<< "$key_item"
 
   meta_data_key=${key_mapped[0]:-}
   meta_data_key_alias=${key_mapped[1]:-}
+  meta_data_default_value=${key_mapped[2]:-}
+
   mapped_key=${meta_data_key_alias:-$meta_data_key}
 
-  value=$(buildkite-agent meta-data get "$meta_data_key")
+  if [[ -z  ${meta_data_default_value} ]]; then
+    value=$(buildkite-agent meta-data get "$meta_data_key")
+  else
+    value=$(buildkite-agent meta-data get "$meta_data_key" --default "$meta_data_default_value")
+  fi
 
   if [[ -n "$value" ]]; then
     echo "${mapped_key}=(${#value} chars)" >&2;
